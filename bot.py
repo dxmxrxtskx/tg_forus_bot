@@ -68,7 +68,8 @@ def main():
     
     # Register handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(main_menu, pattern="^main_menu$"))
+    # Main menu handler должен быть зарегистрирован первым с высоким приоритетом
+    application.add_handler(CallbackQueryHandler(main_menu, pattern="^main_menu$"), group=0)
     
     # Register all section handlers
     for handler in get_movies_handlers():

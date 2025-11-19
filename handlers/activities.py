@@ -16,10 +16,18 @@ TITLE, NOTE, EDIT_TITLE, EDIT_NOTE = range(4)
 
 async def activities_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show activities menu."""
-    await update.message.reply_text(
-        "📋 Раздел активностей",
-        reply_markup=activities_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "📋 Раздел активностей",
+            reply_markup=activities_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "📋 Раздел активностей",
+            reply_markup=activities_menu_keyboard()
+        )
 
 async def activities_planned(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show planned activities."""

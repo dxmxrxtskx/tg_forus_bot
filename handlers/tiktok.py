@@ -16,10 +16,18 @@ TITLE, VIDEO = range(2)
 
 async def tiktok_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show TikTok menu."""
-    await update.message.reply_text(
-        "📱 Раздел трендов TikTok",
-        reply_markup=tiktok_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "📱 Раздел трендов TikTok",
+            reply_markup=tiktok_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "📱 Раздел трендов TikTok",
+            reply_markup=tiktok_menu_keyboard()
+        )
 
 async def tiktok_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show todo trends."""
@@ -163,6 +171,7 @@ def get_tiktok_handlers():
     
     return [
         MessageHandler(filters.Regex("^📱 Тренды TikTok$"), tiktok_menu),
+        CallbackQueryHandler(tiktok_menu, pattern="^tiktok:menu$"),
         CallbackQueryHandler(tiktok_todo, pattern="^tiktok:todo$"),
         CallbackQueryHandler(tiktok_done, pattern="^tiktok:done$"),
         CallbackQueryHandler(tiktok_trend_detail, pattern="^tiktok:\d+$"),

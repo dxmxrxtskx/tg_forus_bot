@@ -17,10 +17,18 @@ TITLE, NOTE, CATEGORY, NEW_CATEGORY, EDIT_TITLE, EDIT_NOTE = range(6)
 
 async def trips_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show trips menu."""
-    await update.message.reply_text(
-        "✈️ Раздел поездок",
-        reply_markup=trips_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "✈️ Раздел поездок",
+            reply_markup=trips_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "✈️ Раздел поездок",
+            reply_markup=trips_menu_keyboard()
+        )
 
 async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show trips by category."""
@@ -49,7 +57,9 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = [{'id': t['id'], 'title': t['title']} for t in trips]
     await query.edit_message_text(
         "Выберите поездку:",
-        reply_markup=list_keyboard(items, "trip", 0, 10)
+        reply_markup=list_keyboard(items, "trip", 0, 10, 
+                                   back_button="🔙 Главное меню", 
+                                   back_callback="main_menu")
     )
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -228,6 +238,7 @@ def get_trips_handlers():
     
     return [
         MessageHandler(filters.Regex("^✈️ Поездки$"), trips_menu),
+        CallbackQueryHandler(trips_menu, pattern="^trips:menu$"),
         CallbackQueryHandler(trips_list, pattern="^trips:(walk|trips|places)$"),
         CallbackQueryHandler(trip_detail, pattern="^trip:\d+$"),
         CallbackQueryHandler(trip_delete, pattern="^trip:\d+:delete$"),

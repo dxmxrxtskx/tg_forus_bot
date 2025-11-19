@@ -95,12 +95,17 @@ def trips_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def trip_detail_keyboard(trip_id: int) -> InlineKeyboardMarkup:
+def trip_detail_keyboard(trip_id: int, category_type: Optional[str] = None) -> InlineKeyboardMarkup:
     """Trip detail actions."""
     keyboard = [
         [InlineKeyboardButton("✏️ Редактировать", callback_data=f"trip:{trip_id}:edit")],
         [InlineKeyboardButton("🗑️ Удалить", callback_data=f"trip:{trip_id}:delete")]
     ]
+    # Добавить кнопку "Назад" к списку поездок
+    if category_type:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data=f"trips:{category_type}")])
+    else:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="trips:menu")])
     return InlineKeyboardMarkup(keyboard)
 
 def tiktok_menu_keyboard() -> InlineKeyboardMarkup:
@@ -177,7 +182,8 @@ def sexual_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def list_keyboard(items: List[dict], prefix: str, page: int = 0, per_page: int = 10) -> InlineKeyboardMarkup:
+def list_keyboard(items: List[dict], prefix: str, page: int = 0, per_page: int = 10, 
+                 back_button: Optional[str] = None, back_callback: Optional[str] = None) -> InlineKeyboardMarkup:
     """Create paginated list keyboard."""
     keyboard = []
     start = page * per_page
@@ -198,6 +204,10 @@ def list_keyboard(items: List[dict], prefix: str, page: int = 0, per_page: int =
     
     if nav_buttons:
         keyboard.append(nav_buttons)
+    
+    # Добавить кнопку "Назад" или "Главное меню" если указано
+    if back_button and back_callback:
+        keyboard.append([InlineKeyboardButton(back_button, callback_data=back_callback)])
     
     return InlineKeyboardMarkup(keyboard)
 

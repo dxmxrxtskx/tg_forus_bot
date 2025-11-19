@@ -20,10 +20,18 @@ TITLE, NOTE, CATEGORY, NEW_CATEGORY, EDIT_TITLE, EDIT_NOTE, RATING_USER1, RATING
 
 async def movies_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show movies menu."""
-    await update.message.reply_text(
-        "🎬 Раздел фильмов",
-        reply_markup=movies_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "🎬 Раздел фильмов",
+            reply_markup=movies_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "🎬 Раздел фильмов",
+            reply_markup=movies_menu_keyboard()
+        )
 
 async def movies_pending_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show pending movies submenu."""
@@ -388,6 +396,7 @@ def get_movies_handlers():
     
     return [
         MessageHandler(filters.Regex("^🎬 Фильмы$"), movies_menu),
+        CallbackQueryHandler(movies_menu, pattern="^movies:menu$"),
         CallbackQueryHandler(movies_pending_menu, pattern="^movies:pending$"),
         CallbackQueryHandler(movies_pending_list, pattern="^movies:pending:"),
         CallbackQueryHandler(movies_watched_menu, pattern="^movies:watched$"),

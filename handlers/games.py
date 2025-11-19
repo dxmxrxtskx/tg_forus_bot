@@ -18,10 +18,18 @@ TITLE, NOTE, GENRE, EDIT_TITLE, EDIT_NOTE, EDIT_GENRE, RATING_USER1, RATING_USER
 
 async def games_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show games menu."""
-    await update.message.reply_text(
-        "🎮 Раздел компьютерных игр",
-        reply_markup=games_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "🎮 Раздел компьютерных игр",
+            reply_markup=games_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "🎮 Раздел компьютерных игр",
+            reply_markup=games_menu_keyboard()
+        )
 
 async def games_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show pending games."""
@@ -358,6 +366,7 @@ def get_games_handlers():
     
     return [
         MessageHandler(filters.Regex("^🎮 Игры$"), games_menu),
+        CallbackQueryHandler(games_menu, pattern="^games:menu$"),
         CallbackQueryHandler(games_pending, pattern="^games:pending$"),
         CallbackQueryHandler(games_done_menu, pattern="^games:done$"),
         CallbackQueryHandler(games_done_list, pattern="^games:done:all$"),

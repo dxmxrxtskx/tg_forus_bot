@@ -15,10 +15,18 @@ TITLE, LINK, DESCRIPTION, CATEGORY, NEW_CATEGORY = range(5)
 
 async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show sexual menu."""
-    await update.message.reply_text(
-        "🔞 Раздел Sexual",
-        reply_markup=sexual_menu_keyboard()
-    )
+    if update.message:
+        await update.message.reply_text(
+            "🔞 Раздел Sexual",
+            reply_markup=sexual_menu_keyboard()
+        )
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            "🔞 Раздел Sexual",
+            reply_markup=sexual_menu_keyboard()
+        )
 
 async def sexual_shops(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show shops by category."""
@@ -189,6 +197,7 @@ def get_sexual_handlers():
     
     return [
         MessageHandler(filters.Regex("^🔞 Sexual$"), sexual_menu),
+        CallbackQueryHandler(sexual_menu, pattern="^sexual:menu$"),
         CallbackQueryHandler(sexual_shops, pattern="^sexual:shops$"),
         CallbackQueryHandler(sexual_category_list, pattern="^sexual_cat:\d+$"),
         CallbackQueryHandler(sexual_detail, pattern="^sexual:\d+$"),
