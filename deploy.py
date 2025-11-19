@@ -115,11 +115,13 @@ def main():
     print("✅ Конфигурация завершена!")
     print("=" * 50)
     print("\nДля запуска бота выполните:")
-    print("  docker-compose up -d")
+    print("  docker compose up -d")
+    print()
+    print("⚠️  ВАЖНО: Используйте 'docker compose' (без дефиса), а не 'docker-compose'!")
     print("\nДля просмотра логов:")
-    print("  docker-compose logs -f")
+    print("  docker compose logs -f")
     print("\nДля остановки бота:")
-    print("  docker-compose down")
+    print("  docker compose down")
     print()
 
 if __name__ == '__main__':
