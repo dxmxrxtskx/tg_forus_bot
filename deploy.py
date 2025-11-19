@@ -69,6 +69,20 @@ def main():
     env_content = f"BOT_TOKEN={bot_token}\n"
     
     env_path = Path(".env")
+    # Удалить .env если это директория или файл
+    if env_path.exists():
+        if env_path.is_dir():
+            import shutil
+            shutil.rmtree(env_path)
+            print("   ⚠️  Удалена директория .env (была создана по ошибке)")
+        elif env_path.is_file():
+            env_path.unlink()
+            print("   ⚠️  Удален существующий файл .env")
+    
+    # Убедиться, что путь свободен
+    if env_path.exists():
+        raise Exception(f"Не удалось удалить {env_path}. Проверьте права доступа.")
+    
     with open(env_path, 'w', encoding='utf-8') as f:
         f.write(env_content)
     print("   ✅ Файл .env создан")
@@ -80,6 +94,12 @@ def main():
     }
     
     config_path = Path("config.json")
+    # Удалить config.json если это директория
+    if config_path.exists() and config_path.is_dir():
+        import shutil
+        shutil.rmtree(config_path)
+        print("   ⚠️  Удалена директория config.json (была создана по ошибке)")
+    
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
     print("   ✅ Файл config.json создан")
