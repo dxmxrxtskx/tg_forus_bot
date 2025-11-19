@@ -3,34 +3,34 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 from database import (
-    get_sexual_by_category, get_sexual_categories, add_sexual, add_sexual_category, get_sexual
+    get_sexual_all, add_sexual, get_sexual
 )
 from keyboards import (
-    sexual_menu_keyboard, list_keyboard, category_selection_keyboard, cancel_keyboard
+    list_keyboard, cancel_keyboard
 )
 
 logger = logging.getLogger(__name__)
 
-TITLE, LINK, DESCRIPTION, CATEGORY, NEW_CATEGORY = range(5)
+TITLE, LINK, DESCRIPTION = range(3)
 
 async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show sexual menu - сразу показываем категории."""
+    """Show sexual menu - простой список без категорий."""
     if update.message:
         # Обработка сообщения (кнопка из главного меню)
-        categories = get_sexual_categories()
+        entries = get_sexual_all()
         
-        if not categories:
-            text = "🔞 Раздел Sexual\n\nСписок категорий пуст"
+        if not entries:
+            text = "🔞 Раздел Sexual\n\nСписок пуст"
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")],
                 [InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")]
             ])
         else:
-            text = "🔞 Раздел Sexual\n\nВыберите категорию:"
-            items = [{'id': c['id'], 'title': c['name']} for c in categories]
+            text = "🔞 Раздел Sexual\n\nВыберите запись:"
+            items = [{'id': e['id'], 'title': e['title']} for e in entries]
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-            base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
+            base_keyboard = list_keyboard(items, "sexual", 0, 10)
             new_keyboard = list(base_keyboard.inline_keyboard)
             new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
             new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
@@ -42,63 +42,26 @@ async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
         
-        categories = get_sexual_categories()
+        entries = get_sexual_all()
         
-        if not categories:
-            text = "🔞 Раздел Sexual\n\nСписок категорий пуст"
+        if not entries:
+            text = "🔞 Раздел Sexual\n\nСписок пуст"
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")],
                 [InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")]
             ])
         else:
-            text = "🔞 Раздел Sexual\n\nВыберите категорию:"
-            items = [{'id': c['id'], 'title': c['name']} for c in categories]
+            text = "🔞 Раздел Sexual\n\nВыберите запись:"
+            items = [{'id': e['id'], 'title': e['title']} for e in entries]
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-            base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
+            base_keyboard = list_keyboard(items, "sexual", 0, 10)
             new_keyboard = list(base_keyboard.inline_keyboard)
             new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
             new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
             keyboard = InlineKeyboardMarkup(new_keyboard)
         
         await query.edit_message_text(text, reply_markup=keyboard)
-
-async def sexual_shops(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show shops by category."""
-    query = update.callback_query
-    await query.answer()
-    
-    categories = get_sexual_categories()
-    
-    if not categories:
-        await query.edit_message_text("Список категорий пуст", reply_markup=sexual_menu_keyboard())
-        return
-    
-    items = [{'id': c['id'], 'title': c['name']} for c in categories]
-    await query.edit_message_text(
-        "Выберите категорию:",
-        reply_markup=list_keyboard(items, "sexual_cat", 0, 10)
-    )
-
-async def sexual_category_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show entries in category."""
-    query = update.callback_query
-    await query.answer()
-    
-    category_id = int(query.data.split(":")[-1])
-    entries = get_sexual_by_category(category_id)
-    
-    if not entries:
-        await query.edit_message_text("Список пуст", reply_markup=sexual_menu_keyboard())
-        return
-    
-    items = [{'id': e['id'], 'title': e['title']} for e in entries]
-    await query.edit_message_text(
-        "Выберите магазин:",
-        reply_markup=list_keyboard(items, "sexual", 0, 10,
-                                   back_button="🔙 Назад",
-                                   back_callback="sexual:menu")
-    )
 
 async def sexual_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show sexual entry detail."""
@@ -112,19 +75,16 @@ async def sexual_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Запись не найдена")
         return
     
-    category = next((c for c in get_sexual_categories() if c['id'] == entry['category_id']), None)
-    text = f"🏪 {entry['title']}\n"
+    text = f"🔞 {entry['title']}\n"
     if entry['link']:
         text += f"🔗 {entry['link']}\n"
     if entry['description']:
-        text += f"📝 {entry['description']}\n"
-    if category:
-        text += f"🏷️ {category['name']}"
+        text += f"📝 {entry['description']}"
     
-    # Создать клавиатуру с кнопкой "Назад" к списку категории
+    # Создать клавиатуру с кнопкой "Назад" к списку
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔙 Назад", callback_data=f"sexual_cat:{entry['category_id']}")]
+        [InlineKeyboardButton("🔙 Назад", callback_data="sexual:menu")]
     ])
     
     await query.edit_message_text(text, reply_markup=keyboard)
@@ -134,7 +94,7 @@ async def sexual_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(
-        "Введите название магазина:",
+        "Введите название:",
         reply_markup=cancel_keyboard()
     )
     return TITLE
@@ -162,54 +122,31 @@ async def sexual_add_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return DESCRIPTION
 
 async def sexual_add_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Get entry description."""
+    """Save sexual entry."""
     if update.message.text and update.message.text != "/skip":
-        context.user_data['sexual_description'] = update.message.text
+        description = update.message.text
     else:
-        context.user_data['sexual_description'] = None
-    
-    categories = get_sexual_categories()
-    cat_list = [{'id': c['id'], 'name': c['name']} for c in categories]
-    await update.message.reply_text(
-        "Выберите категорию:",
-        reply_markup=category_selection_keyboard(cat_list, "sexual_add", add_new=True)
-    )
-    return CATEGORY
-
-async def sexual_add_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Get entry category."""
-    query = update.callback_query
-    await query.answer()
-    
-    if query.data.endswith(":new_cat"):
-        await query.edit_message_text(
-            "Введите название новой категории:",
-            reply_markup=cancel_keyboard()
-        )
-        return NEW_CATEGORY
-    
-    category_id = int(query.data.split(":")[-1])
-    title = context.user_data.get('sexual_title')
-    link = context.user_data.get('sexual_link')
-    description = context.user_data.get('sexual_description')
-    
-    add_sexual(title, link, description, category_id)
-    await query.edit_message_text("✅ Магазин добавлен!", reply_markup=sexual_menu_keyboard())
-    
-    context.user_data.clear()
-    return ConversationHandler.END
-
-async def sexual_add_new_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Add new sexual category."""
-    cat_name = update.message.text
-    cat_id = add_sexual_category(cat_name)
+        description = None
     
     title = context.user_data.get('sexual_title')
     link = context.user_data.get('sexual_link')
-    description = context.user_data.get('sexual_description')
     
-    add_sexual(title, link, description, cat_id)
-    await update.message.reply_text("✅ Магазин добавлен!", reply_markup=sexual_menu_keyboard())
+    add_sexual(title, link, description)
+    
+    # Вернуться к списку
+    entries = get_sexual_all()
+    if not entries:
+        await update.message.reply_text("✅ Запись добавлена!", reply_markup=cancel_keyboard())
+    else:
+        text = "✅ Запись добавлена!\n\n🔞 Раздел Sexual\n\nВыберите запись:"
+        items = [{'id': e['id'], 'title': e['title']} for e in entries]
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        base_keyboard = list_keyboard(items, "sexual", 0, 10)
+        new_keyboard = list(base_keyboard.inline_keyboard)
+        new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
+        new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+        keyboard = InlineKeyboardMarkup(new_keyboard)
+        await update.message.reply_text(text, reply_markup=keyboard)
     
     context.user_data.clear()
     return ConversationHandler.END
@@ -217,10 +154,32 @@ async def sexual_add_new_category(update: Update, context: ContextTypes.DEFAULT_
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Cancel current operation."""
     context.user_data.clear()
+    
+    # Вернуться к списку
+    entries = get_sexual_all()
+    if not entries:
+        text = "Операция отменена\n\n🔞 Раздел Sexual\n\nСписок пуст"
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")],
+            [InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")]
+        ])
+    else:
+        text = "Операция отменена\n\n🔞 Раздел Sexual\n\nВыберите запись:"
+        items = [{'id': e['id'], 'title': e['title']} for e in entries]
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        base_keyboard = list_keyboard(items, "sexual", 0, 10)
+        new_keyboard = list(base_keyboard.inline_keyboard)
+        new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
+        new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+        keyboard = InlineKeyboardMarkup(new_keyboard)
+    
     if update.message:
-        await update.message.reply_text("Операция отменена", reply_markup=sexual_menu_keyboard())
+        await update.message.reply_text(text, reply_markup=keyboard)
     elif update.callback_query:
-        await update.callback_query.edit_message_text("Операция отменена", reply_markup=sexual_menu_keyboard())
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text, reply_markup=keyboard)
     return ConversationHandler.END
 
 def get_sexual_handlers():
@@ -231,8 +190,6 @@ def get_sexual_handlers():
             TITLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, sexual_add_title)],
             LINK: [MessageHandler(filters.TEXT, sexual_add_link)],
             DESCRIPTION: [MessageHandler(filters.TEXT, sexual_add_description)],
-            CATEGORY: [CallbackQueryHandler(sexual_add_category, pattern="^sexual_add:")],
-            NEW_CATEGORY: [MessageHandler(filters.TEXT & ~filters.COMMAND, sexual_add_new_category)],
         },
         fallbacks=[CallbackQueryHandler(cancel, pattern="^cancel$")]
     )
@@ -240,8 +197,6 @@ def get_sexual_handlers():
     return [
         MessageHandler(filters.Regex("^🔞 Sexual$"), sexual_menu),
         CallbackQueryHandler(sexual_menu, pattern="^sexual:menu$"),
-        CallbackQueryHandler(sexual_category_list, pattern="^sexual_cat:\d+$"),
         CallbackQueryHandler(sexual_detail, pattern="^sexual:\d+$"),
         add_handler,
     ]
-

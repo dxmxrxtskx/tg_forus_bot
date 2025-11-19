@@ -37,16 +37,29 @@ async def tiktok_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trends = get_tiktok_trends(status='todo')
     
     if not trends:
-        await query.edit_message_text("Список пуст", reply_markup=tiktok_menu_keyboard())
+        # Если сообщение было удалено (после отправки видео), отправляем новое
+        try:
+            await query.edit_message_text("Список пуст", reply_markup=tiktok_menu_keyboard())
+        except Exception:
+            await query.message.reply_text("Список пуст", reply_markup=tiktok_menu_keyboard())
         return
     
     items = [{'id': t['id'], 'title': t['title']} for t in trends]
-    await query.edit_message_text(
-        "Выберите тренд:",
-        reply_markup=list_keyboard(items, "tiktok", 0, 10,
-                                   back_button="🔙 Назад",
-                                   back_callback="tiktok:menu")
-    )
+    try:
+        await query.edit_message_text(
+            "Выберите тренд:",
+            reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                       back_button="🔙 Назад",
+                                       back_callback="tiktok:menu")
+        )
+    except Exception:
+        # Если сообщение было удалено (после отправки видео), отправляем новое
+        await query.message.reply_text(
+            "Выберите тренд:",
+            reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                       back_button="🔙 Назад",
+                                       back_callback="tiktok:menu")
+        )
 
 async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show done trends."""
@@ -56,16 +69,29 @@ async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trends = get_tiktok_trends(status='done')
     
     if not trends:
-        await query.edit_message_text("Список пуст", reply_markup=tiktok_menu_keyboard())
+        # Если сообщение было удалено (после отправки видео), отправляем новое
+        try:
+            await query.edit_message_text("Список пуст", reply_markup=tiktok_menu_keyboard())
+        except Exception:
+            await query.message.reply_text("Список пуст", reply_markup=tiktok_menu_keyboard())
         return
     
     items = [{'id': t['id'], 'title': t['title']} for t in trends]
-    await query.edit_message_text(
-        "Выберите тренд:",
-        reply_markup=list_keyboard(items, "tiktok", 0, 10,
-                                   back_button="🔙 Назад",
-                                   back_callback="tiktok:menu")
-    )
+    try:
+        await query.edit_message_text(
+            "Выберите тренд:",
+            reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                       back_button="🔙 Назад",
+                                       back_callback="tiktok:menu")
+        )
+    except Exception:
+        # Если сообщение было удалено (после отправки видео), отправляем новое
+        await query.message.reply_text(
+            "Выберите тренд:",
+            reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                       back_button="🔙 Назад",
+                                       back_callback="tiktok:menu")
+        )
 
 async def tiktok_trend_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show trend detail with video."""

@@ -105,8 +105,8 @@ def init_database():
     """)
     
     # Insert default photo categories
-    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('Категория 1',))
-    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('Категория 2',))
+    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('for all',))
+    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('not for all',))
     
     # Games
     cursor.execute("""
@@ -122,27 +122,15 @@ def init_database():
         )
     """)
     
-    # Sexual
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sexual_categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )
-    """)
-    
+    # Sexual (без категорий, простой список)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sexual (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             link TEXT,
-            description TEXT,
-            category_id INTEGER NOT NULL,
-            FOREIGN KEY (category_id) REFERENCES sexual_categories(id)
+            description TEXT
         )
     """)
-    
-    # Insert default sexual category
-    cursor.execute("INSERT OR IGNORE INTO sexual_categories (name) VALUES (?)", ('Магазины',))
     
     conn.commit()
     conn.close()
@@ -690,32 +678,24 @@ def get_game_top10(user_num: Optional[int] = None) -> List[sqlite3.Row]:
     return results
 
 # Sexual operations
-def add_sexual(title: str, link: Optional[str], description: Optional[str], category_id: int) -> int:
+def add_sexual(title: str, link: Optional[str], description: Optional[str]) -> int:
     """Add a new sexual entry."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO sexual (title, link, description, category_id) VALUES (?, ?, ?, ?)",
-        (title, link, description, category_id)
+        "INSERT INTO sexual (title, link, description) VALUES (?, ?, ?)",
+        (title, link, description)
     )
     entry_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return entry_id
 
-def get_sexual_by_category(category_id: Optional[int] = None) -> List[sqlite3.Row]:
-    """Get sexual entries by category."""
+def get_sexual_all() -> List[sqlite3.Row]:
+    """Get all sexual entries."""
     conn = get_connection()
     cursor = conn.cursor()
-    
-    if category_id:
-        cursor.execute(
-            "SELECT * FROM sexual WHERE category_id = ? ORDER BY id DESC",
-            (category_id,)
-        )
-    else:
-        cursor.execute("SELECT * FROM sexual ORDER BY id DESC")
-    
+    cursor.execute("SELECT * FROM sexual ORDER BY id DESC")
     results = cursor.fetchall()
     conn.close()
     return results
@@ -729,22 +709,5 @@ def get_sexual(entry_id: int) -> Optional[sqlite3.Row]:
     conn.close()
     return result
 
-def get_sexual_categories() -> List[sqlite3.Row]:
-    """Get all sexual categories."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM sexual_categories ORDER BY name")
-    results = cursor.fetchall()
-    conn.close()
-    return results
-
-def add_sexual_category(name: str) -> int:
-    """Add a new sexual category."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO sexual_categories (name) VALUES (?)", (name,))
-    cat_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return cat_id
+# Функции для категорий удалены - Sexual теперь без категорий
 

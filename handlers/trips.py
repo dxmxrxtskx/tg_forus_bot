@@ -64,8 +64,9 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                        back_callback=f"trips:{category_type}")
         )
     except Exception as e:
-        # Игнорируем ошибку "Message is not modified"
-        if "Message is not modified" not in str(e):
+        # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
+        error_str = str(e)
+        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
             raise
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -222,6 +222,7 @@ def get_activities_handlers():
     
     return [
         MessageHandler(filters.Regex("^📋 Активности$"), activities_menu),
+        CallbackQueryHandler(activities_menu, pattern="^activities:menu$"),
         CallbackQueryHandler(activities_planned, pattern="^activities:planned$"),
         CallbackQueryHandler(activities_done, pattern="^activities:done$"),
         CallbackQueryHandler(activity_detail, pattern="^activity:\d+$"),
