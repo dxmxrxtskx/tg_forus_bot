@@ -3,7 +3,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 from database import (
-    get_sexual_by_category, get_sexual_categories, add_sexual, add_sexual_category
+    get_sexual_by_category, get_sexual_categories, add_sexual, add_sexual_category, get_sexual
 )
 from keyboards import (
     sexual_menu_keyboard, list_keyboard, category_selection_keyboard, cancel_keyboard
@@ -106,7 +106,6 @@ async def sexual_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     entry_id = int(query.data.split(":")[1])
-    from database import get_sexual
     entry = get_sexual(entry_id)
     
     if not entry:

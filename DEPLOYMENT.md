@@ -205,6 +205,8 @@ docker compose up -d
 |--------|---------|
 | Проверить контейнеры | `docker compose ps` |
 | Посмотреть логи | `docker compose logs -f` |
+| Посмотреть последние логи | `docker compose logs --tail=100` |
+| Посмотреть логи конкретного контейнера | `docker compose logs -f bot` |
 | Добавить пользователя | обновить `config.json`, затем `docker compose restart` |
 | Обновить код с GitHub | `git pull` + сборка/перезапуск |
 | Быстрое обновление (скрипт) | `chmod +x update.sh && ./update.sh` |

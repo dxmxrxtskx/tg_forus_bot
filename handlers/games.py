@@ -66,8 +66,17 @@ async def games_pending_list(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     callback_data = query.data.split(":")
     genre = None
-    if len(callback_data) > 3 and callback_data[2] == "genre":
-        genre = ":".join(callback_data[3:])  # На случай если жанр содержит ":"
+    
+    # Обработать games:pending:all или games:pending:genre:название
+    if len(callback_data) >= 3:
+        if callback_data[2] == "genre" and len(callback_data) > 3:
+            genre = ":".join(callback_data[3:])  # На случай если жанр содержит ":"
+        elif callback_data[2] == "all":
+            genre = None  # Общий список
+        else:
+            # Неизвестный формат, вернуться к меню
+            await games_pending(update, context)
+            return
     
     games = get_games(status='pending')
     
