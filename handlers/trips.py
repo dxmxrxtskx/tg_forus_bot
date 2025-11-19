@@ -10,6 +10,7 @@ from keyboards import (
     trips_menu_keyboard, trip_detail_keyboard, list_keyboard,
     category_selection_keyboard, cancel_keyboard
 )
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,13 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if category:
         text += f"🏷️ {category['name']}"
     
-    await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id))
+    # Определить тип категории для кнопки "Назад"
+    category_type = None
+    if category:
+        category_map = {"Пешком": "walk", "Поездки": "trips", "Места в Херцег-Нови": "places"}
+        category_type = category_map.get(category['name'])
+    
+    await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type))
 
 async def trip_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding trip."""
