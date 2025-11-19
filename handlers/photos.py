@@ -136,7 +136,7 @@ async def photo_add_description(update: Update, context: ContextTypes.DEFAULT_TY
         items = [{'id': c['id'], 'title': c['title']} for c in categories]
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         base_keyboard = list_keyboard(items, "photo_cat", 0, 10)
-        new_keyboard = base_keyboard.inline_keyboard.copy()
+        new_keyboard = list(base_keyboard.inline_keyboard)
         new_keyboard.append([InlineKeyboardButton("➕ Добавить категорию", callback_data="photos:add")])
         new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
         keyboard = InlineKeyboardMarkup(new_keyboard)

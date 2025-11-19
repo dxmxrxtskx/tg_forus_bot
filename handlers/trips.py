@@ -94,7 +94,13 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         category_map = {"Пешком": "walk", "Поездки": "trips", "Места в Херцег-Нови": "places"}
         category_type = category_map.get(category['name'])
     
-    await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type))
+    try:
+        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type))
+    except Exception as e:
+        # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
+        error_str = str(e)
+        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
+            raise
 
 async def trip_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding trip."""

@@ -162,7 +162,7 @@ async def tiktok_add_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     return ConversationHandler.END
 
-async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def tiktok_mark_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Mark trend as done."""
     query = update.callback_query
     await query.answer()
@@ -214,7 +214,7 @@ def get_tiktok_handlers():
         CallbackQueryHandler(tiktok_todo, pattern="^tiktok:todo$"),
         CallbackQueryHandler(tiktok_done, pattern="^tiktok:done$"),
         CallbackQueryHandler(tiktok_trend_detail, pattern="^tiktok:\d+$"),
-        CallbackQueryHandler(tiktok_done, pattern="^tiktok:\d+:done$"),
+        CallbackQueryHandler(tiktok_mark_done, pattern="^tiktok:\d+:done$"),
         CallbackQueryHandler(tiktok_delete, pattern="^tiktok:\d+:delete$"),
         add_handler,
     ]

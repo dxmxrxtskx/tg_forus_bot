@@ -98,15 +98,16 @@ def init_database():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS photo_categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
+            title TEXT UNIQUE NOT NULL,
             link TEXT,
             description TEXT
         )
     """)
     
-    # Insert default photo categories
-    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('for all',))
-    cursor.execute("INSERT OR IGNORE INTO photo_categories (title) VALUES (?)", ('not for all',))
+    # Удалить все существующие категории и вставить только две дефолтные
+    cursor.execute("DELETE FROM photo_categories")
+    cursor.execute("INSERT INTO photo_categories (title) VALUES (?)", ('for all',))
+    cursor.execute("INSERT INTO photo_categories (title) VALUES (?)", ('not for all',))
     
     # Games
     cursor.execute("""
