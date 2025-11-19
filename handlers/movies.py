@@ -69,7 +69,9 @@ async def movies_pending_list(update: Update, context: ContextTypes.DEFAULT_TYPE
     items = [{'id': m['id'], 'title': m['title']} for m in movies]
     await query.edit_message_text(
         "Выберите фильм:",
-        reply_markup=list_keyboard(items, "movie", 0, 10)
+        reply_markup=list_keyboard(items, "movie", 0, 10, 
+                                   back_button="🔙 Назад", 
+                                   back_callback="movies:pending")
     )
 
 async def movie_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -91,7 +93,7 @@ async def movie_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if category:
         text += f"🏷️ {category['name']}"
     
-    await query.edit_message_text(text, reply_markup=movie_detail_keyboard(movie_id))
+    await query.edit_message_text(text, reply_markup=movie_detail_keyboard(movie_id, watched=bool(movie['watched'])))
 
 async def movies_watched_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show watched movies submenu."""
@@ -116,7 +118,9 @@ async def movies_watched_list(update: Update, context: ContextTypes.DEFAULT_TYPE
     items = [{'id': m['id'], 'title': m['title']} for m in movies]
     await query.edit_message_text(
         "Выберите фильм:",
-        reply_markup=list_keyboard(items, "movie", 0, 10)
+        reply_markup=list_keyboard(items, "movie", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="movies:watched")
     )
 
 async def movies_top_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -157,7 +161,12 @@ async def movies_top_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             avg = (movie.get('user1_rating', 0) or 0 + movie.get('user2_rating', 0) or 0) / 2.0
             text += f"{i}. {movie['title']} - {avg:.1f}/10\n"
     
-    await query.edit_message_text(text, reply_markup=movies_top_menu_keyboard())
+    # Создать клавиатуру с кнопкой "Назад"
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    keyboard = movies_top_menu_keyboard()
+    keyboard.inline_keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:watched")])
+    
+    await query.edit_message_text(text, reply_markup=keyboard)
 
 async def movies_random(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Get random movie."""
@@ -167,7 +176,7 @@ async def movies_random(update: Update, context: ContextTypes.DEFAULT_TYPE):
     movie = get_random_movie(exclude_series=True)
     
     if not movie:
-        await query.edit_message_text("Нет доступных фильмов")
+        await query.edit_message_text("Нет доступных фильмов", reply_markup=movies_menu_keyboard())
         return
     
     category = next((c for c in get_movie_categories() if c['id'] == movie['category_id']), None)
@@ -177,7 +186,7 @@ async def movies_random(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if category:
         text += f"🏷️ {category['name']}"
     
-    await query.edit_message_text(text, reply_markup=movie_detail_keyboard(movie['id']))
+    await query.edit_message_text(text, reply_markup=movie_detail_keyboard(movie['id'], watched=False))
 
 async def movie_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding movie."""
@@ -283,7 +292,12 @@ async def movie_rating_user1(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         movie_id = context.user_data['movie_id']
         mark_movie_watched(movie_id, rating, None)
-        await query.edit_message_text("✅ Фильм отмечен как просмотренный!", reply_markup=movies_menu_keyboard())
+        # Получить обновленную информацию о фильме
+        movie = get_movie(movie_id)
+        await query.edit_message_text(
+            "✅ Фильм отмечен как просмотренный!",
+            reply_markup=movie_detail_keyboard(movie_id, watched=True)
+        )
         context.user_data.clear()
         return ConversationHandler.END
 
@@ -297,8 +311,12 @@ async def movie_rating_user2(update: Update, context: ContextTypes.DEFAULT_TYPE)
     rating1 = context.user_data.get('rating1')
     
     mark_movie_watched(movie_id, rating1, rating)
-    await query.edit_message_text("✅ Фильм отмечен как просмотренный!", reply_markup=movies_menu_keyboard())
-    
+    # Получить обновленную информацию о фильме
+    movie = get_movie(movie_id)
+    await query.edit_message_text(
+        "✅ Фильм отмечен как просмотренный!",
+        reply_markup=movie_detail_keyboard(movie_id, watched=True)
+    )
     context.user_data.clear()
     return ConversationHandler.END
 

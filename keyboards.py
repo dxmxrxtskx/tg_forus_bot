@@ -56,13 +56,23 @@ def movies_top_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def movie_detail_keyboard(movie_id: int) -> InlineKeyboardMarkup:
+def movie_detail_keyboard(movie_id: int, watched: bool = False) -> InlineKeyboardMarkup:
     """Movie detail actions."""
-    keyboard = [
-        [InlineKeyboardButton("✅ Просмотрено", callback_data=f"movie:{movie_id}:watched")],
-        [InlineKeyboardButton("✏️ Редактировать", callback_data=f"movie:{movie_id}:edit")],
-        [InlineKeyboardButton("🗑️ Удалить", callback_data=f"movie:{movie_id}:delete")]
-    ]
+    keyboard = []
+    
+    # Кнопка "Просмотрено" только для непросмотренных фильмов
+    if not watched:
+        keyboard.append([InlineKeyboardButton("✅ Просмотрено", callback_data=f"movie:{movie_id}:watched")])
+    
+    keyboard.append([InlineKeyboardButton("✏️ Редактировать", callback_data=f"movie:{movie_id}:edit")])
+    keyboard.append([InlineKeyboardButton("🗑️ Удалить", callback_data=f"movie:{movie_id}:delete")])
+    
+    # Кнопка "Назад" - возврат к соответствующему списку
+    if watched:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:watched:all")])
+    else:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:pending:all")])
+    
     return InlineKeyboardMarkup(keyboard)
 
 def activities_menu_keyboard() -> InlineKeyboardMarkup:
