@@ -165,8 +165,10 @@ async def movies_top_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Создать клавиатуру с кнопкой "Назад"
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-    keyboard = movies_top_menu_keyboard()
-    keyboard.inline_keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:watched")])
+    base_keyboard = movies_top_menu_keyboard()
+    new_keyboard = list(base_keyboard.inline_keyboard)
+    new_keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:watched")])
+    keyboard = InlineKeyboardMarkup(new_keyboard)
     
     await query.edit_message_text(text, reply_markup=keyboard)
 

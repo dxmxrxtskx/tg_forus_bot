@@ -61,12 +61,20 @@ def movies_watched_menu_keyboard() -> InlineKeyboardMarkup:
 
 def movies_top_menu_keyboard() -> InlineKeyboardMarkup:
     """Movies top submenu."""
+    from config import USERS
     keyboard = [
         [InlineKeyboardButton("🏆 Общий топ", callback_data="movies:top:all")],
-        [InlineKeyboardButton("👤 Топ пользователя 1", callback_data="movies:top:user1")],
-        [InlineKeyboardButton("👤 Топ пользователя 2", callback_data="movies:top:user2")],
-        [InlineKeyboardButton("🔙 Назад", callback_data="movies:watched")]
     ]
+    
+    # Добавить кнопки для каждого пользователя
+    if len(USERS) >= 1:
+        user1_name = USERS[0].get('display_name', 'Пользователь 1')
+        keyboard.append([InlineKeyboardButton(f"👤 Топ {user1_name}", callback_data="movies:top:user1")])
+    if len(USERS) >= 2:
+        user2_name = USERS[1].get('display_name', 'Пользователь 2')
+        keyboard.append([InlineKeyboardButton(f"👤 Топ {user2_name}", callback_data="movies:top:user2")])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="movies:watched")])
     return InlineKeyboardMarkup(keyboard)
 
 def movie_detail_keyboard(movie_id: int, watched: bool = False) -> InlineKeyboardMarkup:
@@ -128,12 +136,13 @@ def trips_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def trip_detail_keyboard(trip_id: int, category_type: Optional[str] = None) -> InlineKeyboardMarkup:
+def trip_detail_keyboard(trip_id: int, category_type: Optional[str] = None, visited: bool = False) -> InlineKeyboardMarkup:
     """Trip detail actions."""
-    keyboard = [
-        [InlineKeyboardButton("✏️ Редактировать", callback_data=f"trip:{trip_id}:edit")],
-        [InlineKeyboardButton("🗑️ Удалить", callback_data=f"trip:{trip_id}:delete")]
-    ]
+    keyboard = []
+    if not visited:
+        keyboard.append([InlineKeyboardButton("✅ Посещено", callback_data=f"trip:{trip_id}:visited")])
+    keyboard.append([InlineKeyboardButton("✏️ Редактировать", callback_data=f"trip:{trip_id}:edit")])
+    keyboard.append([InlineKeyboardButton("🗑️ Удалить", callback_data=f"trip:{trip_id}:delete")])
     # Добавить кнопку "Назад" к списку поездок
     if category_type:
         keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data=f"trips:{category_type}")])

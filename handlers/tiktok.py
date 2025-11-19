@@ -174,7 +174,15 @@ async def tiktok_mark_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trend = get_tiktok_trend(trend_id)
     if trend:
         text = f"✅ Тренд отмечен как выполненный!\n\n📱 {trend['title']}"
-        await query.edit_message_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id, status='done'))
+        try:
+            await query.edit_message_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id, status='done'))
+        except Exception as e:
+            # Если сообщение содержит видео, нельзя редактировать текст
+            error_str = str(e)
+            if "There is no text in the message to edit" in error_str or "Bad Request" in error_str:
+                await query.message.reply_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id, status='done'))
+            else:
+                raise
     else:
         await query.edit_message_text("✅ Тренд отмечен как выполненный!", reply_markup=tiktok_menu_keyboard())
 

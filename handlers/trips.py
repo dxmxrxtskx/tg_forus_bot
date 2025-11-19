@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
 from database import (
     get_trips, get_trip, add_trip, update_trip, delete_trip,
-    get_trip_categories, add_trip_category
+    get_trip_categories, add_trip_category, mark_trip_visited
 )
 from keyboards import (
     trips_menu_keyboard, trip_detail_keyboard, list_keyboard,
@@ -88,6 +88,9 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if category:
         text += f"🏷️ {category['name']}"
     
+    # Проверить, посещена ли поездка
+    visited = 'visited' in trip.keys() and trip['visited'] == 1
+    
     # Определить тип категории для кнопки "Назад"
     category_type = None
     if category:
@@ -95,7 +98,7 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         category_type = category_map.get(category['name'])
     
     try:
-        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type))
+        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type, visited=visited))
     except Exception as e:
         # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
         error_str = str(e)
@@ -214,6 +217,40 @@ async def trip_edit_note(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     return ConversationHandler.END
 
+async def trip_visited(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Mark trip as visited."""
+    query = update.callback_query
+    await query.answer()
+    
+    trip_id = int(query.data.split(":")[1])
+    mark_trip_visited(trip_id)
+    
+    # Обновить детальный просмотр
+    trip = get_trip(trip_id)
+    if not trip:
+        await query.edit_message_text("Поездка не найдена")
+        return
+    
+    category = next((c for c in get_trip_categories() if c['id'] == trip['category_id']), None)
+    text = f"✅ Поездка отмечена как посещенная!\n\n✈️ {trip['title']}\n"
+    if trip['note']:
+        text += f"📝 {trip['note']}\n"
+    if category:
+        text += f"🏷️ {category['name']}"
+    
+    # Определить тип категории для кнопки "Назад"
+    category_type = None
+    if category:
+        category_map = {"Пешком": "walk", "Поездки": "trips", "Места в Херцег-Нови": "places"}
+        category_type = category_map.get(category['name'])
+    
+    try:
+        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type, visited=True))
+    except Exception as e:
+        error_str = str(e)
+        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
+            raise
+
 async def trip_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Delete trip."""
     query = update.callback_query
@@ -260,6 +297,7 @@ def get_trips_handlers():
         CallbackQueryHandler(trips_menu, pattern="^trips:menu$"),
         CallbackQueryHandler(trips_list, pattern="^trips:(walk|trips|places)$"),
         CallbackQueryHandler(trip_detail, pattern="^trip:\d+$"),
+        CallbackQueryHandler(trip_visited, pattern="^trip:\d+:visited$"),
         CallbackQueryHandler(trip_delete, pattern="^trip:\d+:delete$"),
         add_handler,
         edit_handler,

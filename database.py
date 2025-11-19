@@ -73,10 +73,17 @@ def init_database():
             title TEXT NOT NULL,
             note TEXT,
             category_id INTEGER NOT NULL,
+            visited INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (category_id) REFERENCES trip_categories(id)
         )
     """)
+    
+    # Добавить колонку visited если её нет (для существующих баз данных)
+    try:
+        cursor.execute("ALTER TABLE trips ADD COLUMN visited INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # Колонка уже существует
     
     # Insert default trip categories
     default_trip_categories = ['Пешком', 'Поездки', 'Места в Херцег-Нови']
@@ -431,6 +438,14 @@ def delete_trip(trip_id: int):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM trips WHERE id = ?", (trip_id,))
+    conn.commit()
+    conn.close()
+
+def mark_trip_visited(trip_id: int):
+    """Mark trip as visited."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE trips SET visited = 1 WHERE id = ?", (trip_id,))
     conn.commit()
     conn.close()
 
