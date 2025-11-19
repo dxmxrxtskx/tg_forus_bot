@@ -14,19 +14,54 @@ logger = logging.getLogger(__name__)
 TITLE, LINK, DESCRIPTION, CATEGORY, NEW_CATEGORY = range(5)
 
 async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show sexual menu."""
+    """Show sexual menu - сразу показываем категории."""
     if update.message:
-        await update.message.reply_text(
-            "🔞 Раздел Sexual",
-            reply_markup=sexual_menu_keyboard()
-        )
+        # Обработка сообщения (кнопка из главного меню)
+        categories = get_sexual_categories()
+        
+        if not categories:
+            text = "🔞 Раздел Sexual\n\nСписок категорий пуст"
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")],
+                [InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")]
+            ])
+        else:
+            text = "🔞 Раздел Sexual\n\nВыберите категорию:"
+            items = [{'id': c['id'], 'title': c['name']} for c in categories]
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
+            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
+            new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+            keyboard = InlineKeyboardMarkup(new_keyboard)
+        
+        await update.message.reply_text(text, reply_markup=keyboard)
     elif update.callback_query:
+        # Обработка callback_query (кнопка "Назад")
         query = update.callback_query
         await query.answer()
-        await query.edit_message_text(
-            "🔞 Раздел Sexual",
-            reply_markup=sexual_menu_keyboard()
-        )
+        
+        categories = get_sexual_categories()
+        
+        if not categories:
+            text = "🔞 Раздел Sexual\n\nСписок категорий пуст"
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")],
+                [InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")]
+            ])
+        else:
+            text = "🔞 Раздел Sexual\n\nВыберите категорию:"
+            items = [{'id': c['id'], 'title': c['name']} for c in categories]
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
+            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
+            new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+            keyboard = InlineKeyboardMarkup(new_keyboard)
+        
+        await query.edit_message_text(text, reply_markup=keyboard)
 
 async def sexual_shops(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show shops by category."""
@@ -60,7 +95,9 @@ async def sexual_category_list(update: Update, context: ContextTypes.DEFAULT_TYP
     items = [{'id': e['id'], 'title': e['title']} for e in entries]
     await query.edit_message_text(
         "Выберите магазин:",
-        reply_markup=list_keyboard(items, "sexual", 0, 10)
+        reply_markup=list_keyboard(items, "sexual", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="sexual:menu")
     )
 
 async def sexual_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -85,7 +122,13 @@ async def sexual_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if category:
         text += f"🏷️ {category['name']}"
     
-    await query.edit_message_text(text, reply_markup=sexual_menu_keyboard())
+    # Создать клавиатуру с кнопкой "Назад" к списку категории
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔙 Назад", callback_data=f"sexual_cat:{entry['category_id']}")]
+    ])
+    
+    await query.edit_message_text(text, reply_markup=keyboard)
 
 async def sexual_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding sexual entry."""
@@ -198,7 +241,6 @@ def get_sexual_handlers():
     return [
         MessageHandler(filters.Regex("^🔞 Sexual$"), sexual_menu),
         CallbackQueryHandler(sexual_menu, pattern="^sexual:menu$"),
-        CallbackQueryHandler(sexual_shops, pattern="^sexual:shops$"),
         CallbackQueryHandler(sexual_category_list, pattern="^sexual_cat:\d+$"),
         CallbackQueryHandler(sexual_detail, pattern="^sexual:\d+$"),
         add_handler,

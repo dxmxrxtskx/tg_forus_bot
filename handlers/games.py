@@ -32,11 +32,48 @@ async def games_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def games_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show pending games."""
+    """Show pending games menu - выбор между общим списком и жанрами."""
     query = update.callback_query
     await query.answer()
     
+    # Получить уникальные жанры из игр
     games = get_games(status='pending')
+    genres = set()
+    for game in games:
+        if game.get('genre'):
+            genres.add(game['genre'])
+    
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    keyboard = [
+        [InlineKeyboardButton("📋 Общий список", callback_data="games:pending:all")]
+    ]
+    
+    # Добавить кнопки для каждого жанра
+    for genre in sorted(genres):
+        keyboard.append([InlineKeyboardButton(f"🏷️ {genre}", callback_data=f"games:pending:genre:{genre}")])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="games:menu")])
+    
+    await query.edit_message_text(
+        "📝 Ожидающие игры\n\nВыберите список:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def games_pending_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show pending games list (общий или по жанру)."""
+    query = update.callback_query
+    await query.answer()
+    
+    callback_data = query.data.split(":")
+    genre = None
+    if len(callback_data) > 3 and callback_data[2] == "genre":
+        genre = ":".join(callback_data[3:])  # На случай если жанр содержит ":"
+    
+    games = get_games(status='pending')
+    
+    # Фильтровать по жанру если указан
+    if genre:
+        games = [g for g in games if g.get('genre') == genre]
     
     if not games:
         await query.edit_message_text("Список пуст", reply_markup=games_menu_keyboard())
@@ -45,7 +82,9 @@ async def games_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = [{'id': g['id'], 'title': g['title']} for g in games]
     await query.edit_message_text(
         "Выберите игру:",
-        reply_markup=list_keyboard(items, "game", 0, 10)
+        reply_markup=list_keyboard(items, "game", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="games:pending")
     )
 
 async def games_done_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -131,7 +170,8 @@ async def games_random(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if game['genre']:
         text += f"🏷️ {game['genre']}"
     
-    await query.edit_message_text(text, reply_markup=game_detail_keyboard(game['id']))
+    status = game.get('status', 'pending')
+    await query.edit_message_text(text, reply_markup=game_detail_keyboard(game['id'], status=status))
 
 async def game_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show game detail."""
@@ -151,7 +191,8 @@ async def game_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if game['genre']:
         text += f"🏷️ {game['genre']}"
     
-    await query.edit_message_text(text, reply_markup=game_detail_keyboard(game_id))
+    status = game.get('status', 'pending')
+    await query.edit_message_text(text, reply_markup=game_detail_keyboard(game_id, status=status))
 
 async def game_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding game."""
@@ -235,7 +276,17 @@ async def game_rating_user1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         game_id = context.user_data['game_id']
         mark_game_done(game_id, rating, None)
-        await query.edit_message_text("✅ Игра отмечена как пройденная!", reply_markup=games_menu_keyboard())
+        # Получить обновленную информацию об игре
+        game = get_game(game_id)
+        if game:
+            text = f"✅ Игра отмечена как пройденная!\n\n🎮 {game['title']}"
+            if game['note']:
+                text += f"\n📝 {game['note']}"
+            if game['genre']:
+                text += f"\n🏷️ {game['genre']}"
+            await query.edit_message_text(text, reply_markup=game_detail_keyboard(game_id, status='done'))
+        else:
+            await query.edit_message_text("✅ Игра отмечена как пройденная!", reply_markup=games_menu_keyboard())
         context.user_data.clear()
         return ConversationHandler.END
 
@@ -249,7 +300,17 @@ async def game_rating_user2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rating1 = context.user_data.get('rating1')
     
     mark_game_done(game_id, rating1, rating)
-    await query.edit_message_text("✅ Игра отмечена как пройденная!", reply_markup=games_menu_keyboard())
+    # Получить обновленную информацию об игре
+    game = get_game(game_id)
+    if game:
+        text = f"✅ Игра отмечена как пройденная!\n\n🎮 {game['title']}"
+        if game['note']:
+            text += f"\n📝 {game['note']}"
+        if game['genre']:
+            text += f"\n🏷️ {game['genre']}"
+        await query.edit_message_text(text, reply_markup=game_detail_keyboard(game_id, status='done'))
+    else:
+        await query.edit_message_text("✅ Игра отмечена как пройденная!", reply_markup=games_menu_keyboard())
     
     context.user_data.clear()
     return ConversationHandler.END
@@ -368,6 +429,7 @@ def get_games_handlers():
         MessageHandler(filters.Regex("^🎮 Игры$"), games_menu),
         CallbackQueryHandler(games_menu, pattern="^games:menu$"),
         CallbackQueryHandler(games_pending, pattern="^games:pending$"),
+        CallbackQueryHandler(games_pending_list, pattern="^games:pending:"),
         CallbackQueryHandler(games_done_menu, pattern="^games:done$"),
         CallbackQueryHandler(games_done_list, pattern="^games:done:all$"),
         CallbackQueryHandler(games_top_menu, pattern="^games:done:top$"),

@@ -59,8 +59,8 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(
         "Выберите поездку:",
         reply_markup=list_keyboard(items, "trip", 0, 10, 
-                                   back_button="🔙 Главное меню", 
-                                   back_callback="main_menu")
+                                   back_button="🔙 Назад", 
+                                   back_callback=f"trips:{category_type}")
     )
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):

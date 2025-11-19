@@ -43,7 +43,9 @@ async def activities_planned(update: Update, context: ContextTypes.DEFAULT_TYPE)
     items = [{'id': a['id'], 'title': a['title']} for a in activities]
     await query.edit_message_text(
         "Выберите активность:",
-        reply_markup=list_keyboard(items, "activity", 0, 10)
+        reply_markup=list_keyboard(items, "activity", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="activities:menu")
     )
 
 async def activities_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -60,7 +62,9 @@ async def activities_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = [{'id': a['id'], 'title': a['title']} for a in activities]
     await query.edit_message_text(
         "Выберите активность:",
-        reply_markup=list_keyboard(items, "activity", 0, 10)
+        reply_markup=list_keyboard(items, "activity", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="activities:menu")
     )
 
 async def activity_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,7 +83,9 @@ async def activity_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if activity['note']:
         text += f"📝 {activity['note']}"
     
-    await query.edit_message_text(text, reply_markup=activity_detail_keyboard(activity_id))
+    # Определить статус активности для кнопки "Назад"
+    status = activity.get('status', 'planned')
+    await query.edit_message_text(text, reply_markup=activity_detail_keyboard(activity_id, status=status))
 
 async def activity_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding activity."""
@@ -123,7 +129,15 @@ async def activity_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     activity_id = int(query.data.split(":")[1])
     mark_activity_done(activity_id)
     
-    await query.edit_message_text("✅ Активность выполнена!", reply_markup=activities_menu_keyboard())
+    # Получить обновленную информацию об активности
+    activity = get_activity(activity_id)
+    if activity:
+        text = f"✅ Активность выполнена!\n\n📋 {activity['title']}"
+        if activity['note']:
+            text += f"\n📝 {activity['note']}"
+        await query.edit_message_text(text, reply_markup=activity_detail_keyboard(activity_id, status='done'))
+    else:
+        await query.edit_message_text("✅ Активность выполнена!", reply_markup=activities_menu_keyboard())
 
 async def activity_edit_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start editing activity."""

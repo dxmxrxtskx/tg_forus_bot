@@ -98,13 +98,23 @@ def activities_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def activity_detail_keyboard(activity_id: int) -> InlineKeyboardMarkup:
+def activity_detail_keyboard(activity_id: int, status: str = "planned") -> InlineKeyboardMarkup:
     """Activity detail actions."""
-    keyboard = [
-        [InlineKeyboardButton("✅ Выполнено", callback_data=f"activity:{activity_id}:done")],
-        [InlineKeyboardButton("✏️ Редактировать", callback_data=f"activity:{activity_id}:edit")],
-        [InlineKeyboardButton("🗑️ Удалить", callback_data=f"activity:{activity_id}:delete")]
-    ]
+    keyboard = []
+    
+    # Кнопка "Выполнено" только для планируемых активностей
+    if status == "planned":
+        keyboard.append([InlineKeyboardButton("✅ Выполнено", callback_data=f"activity:{activity_id}:done")])
+    
+    keyboard.append([InlineKeyboardButton("✏️ Редактировать", callback_data=f"activity:{activity_id}:edit")])
+    keyboard.append([InlineKeyboardButton("🗑️ Удалить", callback_data=f"activity:{activity_id}:delete")])
+    
+    # Кнопка "Назад" - возврат к соответствующему списку
+    if status == "planned":
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="activities:planned")])
+    else:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="activities:done")])
+    
     return InlineKeyboardMarkup(keyboard)
 
 def trips_menu_keyboard() -> InlineKeyboardMarkup:
@@ -141,12 +151,22 @@ def tiktok_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def tiktok_trend_detail_keyboard(trend_id: int) -> InlineKeyboardMarkup:
+def tiktok_trend_detail_keyboard(trend_id: int, status: str = "todo") -> InlineKeyboardMarkup:
     """TikTok trend detail actions."""
-    keyboard = [
-        [InlineKeyboardButton("✅ Выполнено", callback_data=f"tiktok:{trend_id}:done")],
-        [InlineKeyboardButton("🗑️ Удалить", callback_data=f"tiktok:{trend_id}:delete")]
-    ]
+    keyboard = []
+    
+    # Кнопка "Выполнено" только для невыполненных трендов
+    if status == "todo":
+        keyboard.append([InlineKeyboardButton("✅ Выполнено", callback_data=f"tiktok:{trend_id}:done")])
+    
+    keyboard.append([InlineKeyboardButton("🗑️ Удалить", callback_data=f"tiktok:{trend_id}:delete")])
+    
+    # Кнопка "Назад" - возврат к соответствующему списку
+    if status == "todo":
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="tiktok:todo")])
+    else:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="tiktok:done")])
+    
     return InlineKeyboardMarkup(keyboard)
 
 def photos_menu_keyboard() -> InlineKeyboardMarkup:
@@ -187,13 +207,23 @@ def games_top_menu_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def game_detail_keyboard(game_id: int) -> InlineKeyboardMarkup:
+def game_detail_keyboard(game_id: int, status: str = "pending") -> InlineKeyboardMarkup:
     """Game detail actions."""
-    keyboard = [
-        [InlineKeyboardButton("✅ Пройдено", callback_data=f"game:{game_id}:done")],
-        [InlineKeyboardButton("✏️ Редактировать", callback_data=f"game:{game_id}:edit")],
-        [InlineKeyboardButton("🗑️ Удалить", callback_data=f"game:{game_id}:delete")]
-    ]
+    keyboard = []
+    
+    # Кнопка "Пройдено" только для непройденных игр
+    if status == "pending":
+        keyboard.append([InlineKeyboardButton("✅ Пройдено", callback_data=f"game:{game_id}:done")])
+    
+    keyboard.append([InlineKeyboardButton("✏️ Редактировать", callback_data=f"game:{game_id}:edit")])
+    keyboard.append([InlineKeyboardButton("🗑️ Удалить", callback_data=f"game:{game_id}:delete")])
+    
+    # Кнопка "Назад" - возврат к соответствующему списку
+    if status == "pending":
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="games:pending")])
+    else:
+        keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="games:done:all")])
+    
     return InlineKeyboardMarkup(keyboard)
 
 def sexual_menu_keyboard() -> InlineKeyboardMarkup:

@@ -43,7 +43,9 @@ async def tiktok_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = [{'id': t['id'], 'title': t['title']} for t in trends]
     await query.edit_message_text(
         "Выберите тренд:",
-        reply_markup=list_keyboard(items, "tiktok", 0, 10)
+        reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="tiktok:menu")
     )
 
 async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -60,7 +62,9 @@ async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = [{'id': t['id'], 'title': t['title']} for t in trends]
     await query.edit_message_text(
         "Выберите тренд:",
-        reply_markup=list_keyboard(items, "tiktok", 0, 10)
+        reply_markup=list_keyboard(items, "tiktok", 0, 10,
+                                   back_button="🔙 Назад",
+                                   back_callback="tiktok:menu")
     )
 
 async def tiktok_trend_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -77,22 +81,25 @@ async def tiktok_trend_detail(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     text = f"📱 {trend['title']}"
     
+    # Определить статус тренда для кнопки "Назад"
+    status = trend.get('status', 'todo')
+    
     if trend['video_file_id']:
         try:
             await query.message.reply_video(
                 video=trend['video_file_id'],
                 caption=text,
-                reply_markup=tiktok_trend_detail_keyboard(trend_id)
+                reply_markup=tiktok_trend_detail_keyboard(trend_id, status=status)
             )
             await query.delete_message()
         except Exception as e:
             logger.error(f"Error sending video: {e}")
             await query.edit_message_text(
                 f"{text}\n\n⚠️ Видео недоступно",
-                reply_markup=tiktok_trend_detail_keyboard(trend_id)
+                reply_markup=tiktok_trend_detail_keyboard(trend_id, status=status)
             )
     else:
-        await query.edit_message_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id))
+        await query.edit_message_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id, status=status))
 
 async def tiktok_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding trend."""
@@ -137,7 +144,13 @@ async def tiktok_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trend_id = int(query.data.split(":")[1])
     mark_tiktok_trend_done(trend_id)
     
-    await query.edit_message_text("✅ Тренд отмечен как выполненный!", reply_markup=tiktok_menu_keyboard())
+    # Получить обновленную информацию о тренде
+    trend = get_tiktok_trend(trend_id)
+    if trend:
+        text = f"✅ Тренд отмечен как выполненный!\n\n📱 {trend['title']}"
+        await query.edit_message_text(text, reply_markup=tiktok_trend_detail_keyboard(trend_id, status='done'))
+    else:
+        await query.edit_message_text("✅ Тренд отмечен как выполненный!", reply_markup=tiktok_menu_keyboard())
 
 async def tiktok_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Delete trend."""
