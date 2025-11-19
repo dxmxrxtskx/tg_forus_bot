@@ -60,23 +60,30 @@
 2. **Клонируйте репозиторий:**
    ```bash
    cd /opt
-   sudo git clone https://github.com/YOUR_USERNAME/FU_bot.git
-   cd FU_bot
+   sudo git clone https://github.com/dxmxrxtskx/tg_forus_bot.git
+   cd tg_forus_bot
    sudo chown -R $USER:$USER .
    ```
 
-3. **Настройте бота:**
+3. **Установите зависимости (автоматически):**
+   ```bash
+   chmod +x setup_server.sh
+   sudo ./setup_server.sh
+   ```
+   > Скрипт установит Docker, Docker Compose и все необходимые компоненты
+
+4. **Настройте бота:**
    ```bash
    python3 deploy.py
    # Или создайте .env и config.json вручную
    ```
 
-4. **Запустите бота:**
+5. **Запустите бота:**
    ```bash
    docker compose up -d
    ```
 
-5. **Сделайте скрипт обновления исполняемым:**
+6. **Сделайте скрипт обновления исполняемым:**
    ```bash
    chmod +x update.sh
    ```

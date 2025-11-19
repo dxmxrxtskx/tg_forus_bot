@@ -32,7 +32,25 @@ docker compose version
 
 ## 2. Подготовка сервера (Ubuntu/Debian)
 
+### Вариант A: Автоматическая установка (рекомендуется)
+
+```bash
+# После клонирования репозитория
+cd /opt/tg_forus_bot
+chmod +x setup_server.sh
+sudo ./setup_server.sh
 ```
+
+Скрипт автоматически установит все необходимые компоненты:
+- Обновит систему
+- Установит Git, Python, pip, curl
+- Установит Docker Engine
+- Установит Docker Compose plugin
+- Настроит права доступа
+
+### Вариант B: Ручная установка
+
+```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y git python3 python3-pip
 
