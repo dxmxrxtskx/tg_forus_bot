@@ -82,7 +82,7 @@ async def tiktok_trend_detail(update: Update, context: ContextTypes.DEFAULT_TYPE
     text = f"📱 {trend['title']}"
     
     # Определить статус тренда для кнопки "Назад"
-    status = trend.get('status', 'todo')
+    status = trend['status'] if 'status' in trend.keys() else 'todo'
     
     if trend['video_file_id']:
         try:

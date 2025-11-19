@@ -84,7 +84,7 @@ async def activity_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += f"📝 {activity['note']}"
     
     # Определить статус активности для кнопки "Назад"
-    status = activity.get('status', 'planned')
+    status = activity['status'] if 'status' in activity.keys() else 'planned'
     await query.edit_message_text(text, reply_markup=activity_detail_keyboard(activity_id, status=status))
 
 async def activity_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):

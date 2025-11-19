@@ -31,7 +31,7 @@ async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             items = [{'id': c['id'], 'title': c['name']} for c in categories]
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
             base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
-            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard = list(base_keyboard.inline_keyboard)
             new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
             new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
             keyboard = InlineKeyboardMarkup(new_keyboard)
@@ -56,7 +56,7 @@ async def sexual_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             items = [{'id': c['id'], 'title': c['name']} for c in categories]
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
             base_keyboard = list_keyboard(items, "sexual_cat", 0, 10)
-            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard = list(base_keyboard.inline_keyboard)
             new_keyboard.append([InlineKeyboardButton("➕ Добавить", callback_data="sexual:add")])
             new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
             keyboard = InlineKeyboardMarkup(new_keyboard)

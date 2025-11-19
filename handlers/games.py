@@ -40,7 +40,7 @@ async def games_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
     games = get_games(status='pending')
     genres = set()
     for game in games:
-        if game.get('genre'):
+        if 'genre' in game.keys() and game['genre']:
             genres.add(game['genre'])
     
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -82,7 +82,7 @@ async def games_pending_list(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     # Фильтровать по жанру если указан
     if genre:
-        games = [g for g in games if g.get('genre') == genre]
+        games = [g for g in games if 'genre' in g.keys() and g['genre'] == genre]
     
     if not games:
         await query.edit_message_text("Список пуст", reply_markup=games_menu_keyboard())
@@ -157,7 +157,9 @@ async def games_top_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             rating = game[f'user{user_num}_rating']
             text += f"{i}. {game['title']} - {rating}/10\n"
         else:
-            avg = (game.get('user1_rating', 0) or 0 + game.get('user2_rating', 0) or 0) / 2.0
+            rating1 = game['user1_rating'] if 'user1_rating' in game.keys() and game['user1_rating'] else 0
+            rating2 = game['user2_rating'] if 'user2_rating' in game.keys() and game['user2_rating'] else 0
+            avg = (rating1 + rating2) / 2.0
             text += f"{i}. {game['title']} - {avg:.1f}/10\n"
     
     await query.edit_message_text(text, reply_markup=games_top_menu_keyboard())
@@ -179,7 +181,7 @@ async def games_random(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if game['genre']:
         text += f"🏷️ {game['genre']}"
     
-    status = game.get('status', 'pending')
+    status = game['status'] if 'status' in game.keys() else 'pending'
     await query.edit_message_text(text, reply_markup=game_detail_keyboard(game['id'], status=status))
 
 async def game_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):

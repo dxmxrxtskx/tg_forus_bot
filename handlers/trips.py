@@ -56,12 +56,17 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     items = [{'id': t['id'], 'title': t['title']} for t in trips]
-    await query.edit_message_text(
-        "Выберите поездку:",
-        reply_markup=list_keyboard(items, "trip", 0, 10, 
-                                   back_button="🔙 Назад", 
-                                   back_callback=f"trips:{category_type}")
-    )
+    try:
+        await query.edit_message_text(
+            "Выберите поездку:",
+            reply_markup=list_keyboard(items, "trip", 0, 10, 
+                                       back_button="🔙 Назад", 
+                                       back_callback=f"trips:{category_type}")
+        )
+    except Exception as e:
+        # Игнорируем ошибку "Message is not modified"
+        if "Message is not modified" not in str(e):
+            raise
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show trip detail."""

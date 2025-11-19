@@ -158,7 +158,9 @@ async def movies_top_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             rating = movie[f'user{user_num}_rating']
             text += f"{i}. {movie['title']} - {rating}/10\n"
         else:
-            avg = (movie.get('user1_rating', 0) or 0 + movie.get('user2_rating', 0) or 0) / 2.0
+            rating1 = movie['user1_rating'] if 'user1_rating' in movie.keys() and movie['user1_rating'] else 0
+            rating2 = movie['user2_rating'] if 'user2_rating' in movie.keys() and movie['user2_rating'] else 0
+            avg = (rating1 + rating2) / 2.0
             text += f"{i}. {movie['title']} - {avg:.1f}/10\n"
     
     # Создать клавиатуру с кнопкой "Назад"
