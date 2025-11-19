@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: fu_bot
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env
+      - ./config.json:/app/config.json
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
