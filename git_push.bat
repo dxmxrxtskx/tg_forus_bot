@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 REM Скрипт для быстрой загрузки изменений на GitHub (Windows)
 
 if "%1"=="" (
