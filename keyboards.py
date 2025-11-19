@@ -3,7 +3,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 from typing import List, Optional
 
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
-    """Main menu keyboard."""
+    """Main menu keyboard (reply keyboard for messages)."""
     keyboard = [
         [KeyboardButton("🎬 Фильмы")],
         [KeyboardButton("📋 Активности")],
@@ -14,6 +14,19 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
         [KeyboardButton("🔞 Sexual")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+def main_menu_inline_keyboard() -> InlineKeyboardMarkup:
+    """Main menu inline keyboard (for callback queries)."""
+    keyboard = [
+        [InlineKeyboardButton("🎬 Фильмы", callback_data="section:movies")],
+        [InlineKeyboardButton("📋 Активности", callback_data="section:activities")],
+        [InlineKeyboardButton("✈️ Поездки", callback_data="section:trips")],
+        [InlineKeyboardButton("📱 Тренды TikTok", callback_data="section:tiktok")],
+        [InlineKeyboardButton("📸 Фотографии", callback_data="section:photos")],
+        [InlineKeyboardButton("🎮 Игры", callback_data="section:games")],
+        [InlineKeyboardButton("🔞 Sexual", callback_data="section:sexual")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 def movies_menu_keyboard() -> InlineKeyboardMarkup:
     """Movies section menu."""

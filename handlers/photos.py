@@ -15,29 +15,47 @@ TITLE, LINK, DESCRIPTION = range(3)
 
 async def photos_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show photos menu."""
-    query = update.callback_query if update.callback_query else None
-    
-    categories = get_photo_categories()
-    
-    if not categories:
-        text = "📸 Раздел фотографий\n\nСписок категорий пуст"
-        keyboard = photos_menu_keyboard()
-    else:
-        text = "📸 Раздел фотографий\n\nВыберите категорию:"
-        items = [{'id': c['id'], 'title': c['title']} for c in categories]
-        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-        base_keyboard = list_keyboard(items, "photo_cat", 0, 10)
-        # Add "Add category" button
-        new_keyboard = base_keyboard.inline_keyboard.copy()
-        new_keyboard.append([InlineKeyboardButton("➕ Добавить категорию", callback_data="photos:add")])
-        new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
-        keyboard = InlineKeyboardMarkup(new_keyboard)
-    
-    if query:
-        await query.answer()
-        await query.edit_message_text(text, reply_markup=keyboard)
-    else:
+    if update.message:
+        # Обработка сообщения (кнопка из главного меню)
+        categories = get_photo_categories()
+        
+        if not categories:
+            text = "📸 Раздел фотографий\n\nСписок категорий пуст"
+            keyboard = photos_menu_keyboard()
+        else:
+            text = "📸 Раздел фотографий\n\nВыберите категорию:"
+            items = [{'id': c['id'], 'title': c['title']} for c in categories]
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            base_keyboard = list_keyboard(items, "photo_cat", 0, 10)
+            # Add "Add category" button
+            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard.append([InlineKeyboardButton("➕ Добавить категорию", callback_data="photos:add")])
+            new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+            keyboard = InlineKeyboardMarkup(new_keyboard)
+        
         await update.message.reply_text(text, reply_markup=keyboard)
+    elif update.callback_query:
+        # Обработка callback_query (кнопка "Назад" или "Главное меню")
+        query = update.callback_query
+        await query.answer()
+        
+        categories = get_photo_categories()
+        
+        if not categories:
+            text = "📸 Раздел фотографий\n\nСписок категорий пуст"
+            keyboard = photos_menu_keyboard()
+        else:
+            text = "📸 Раздел фотографий\n\nВыберите категорию:"
+            items = [{'id': c['id'], 'title': c['title']} for c in categories]
+            from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+            base_keyboard = list_keyboard(items, "photo_cat", 0, 10)
+            # Add "Add category" button
+            new_keyboard = base_keyboard.inline_keyboard.copy()
+            new_keyboard.append([InlineKeyboardButton("➕ Добавить категорию", callback_data="photos:add")])
+            new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+            keyboard = InlineKeyboardMarkup(new_keyboard)
+        
+        await query.edit_message_text(text, reply_markup=keyboard)
 
 async def photo_category_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show photo category detail."""
@@ -57,8 +75,13 @@ async def photo_category_detail(update: Update, context: ContextTypes.DEFAULT_TY
     if category['description']:
         text += f"📝 {category['description']}"
     
-    from keyboards import photos_menu_keyboard
-    await query.edit_message_text(text, reply_markup=photos_menu_keyboard())
+    # Создать клавиатуру с кнопкой "Назад" к списку категорий
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔙 Назад", callback_data="photos:menu")]
+    ])
+    
+    await query.edit_message_text(text, reply_markup=keyboard)
 
 async def photo_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding photo category."""
@@ -104,7 +127,20 @@ async def photo_add_description(update: Update, context: ContextTypes.DEFAULT_TY
     
     add_photo_category(title, link, description)
     
-    await update.message.reply_text("✅ Категория добавлена!", reply_markup=photos_menu_keyboard())
+    # Вернуться к списку категорий
+    categories = get_photo_categories()
+    if not categories:
+        await update.message.reply_text("✅ Категория добавлена!", reply_markup=photos_menu_keyboard())
+    else:
+        text = "✅ Категория добавлена!\n\n📸 Раздел фотографий\n\nВыберите категорию:"
+        items = [{'id': c['id'], 'title': c['title']} for c in categories]
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        base_keyboard = list_keyboard(items, "photo_cat", 0, 10)
+        new_keyboard = base_keyboard.inline_keyboard.copy()
+        new_keyboard.append([InlineKeyboardButton("➕ Добавить категорию", callback_data="photos:add")])
+        new_keyboard.append([InlineKeyboardButton("🔙 Главное меню", callback_data="main_menu")])
+        keyboard = InlineKeyboardMarkup(new_keyboard)
+        await update.message.reply_text(text, reply_markup=keyboard)
     
     context.user_data.clear()
     return ConversationHandler.END

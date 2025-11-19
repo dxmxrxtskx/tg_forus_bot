@@ -224,10 +224,15 @@ docker compose up -d
    ssh user@your-server-ip
    cd /opt/FU_bot
    ./update.sh
-   # Или вручную:
+   # Или вручную (ВАЖНО: нужна пересборка!):
    git pull
-   docker compose restart
+   docker compose build
+   docker compose up -d
+   # Или одной командой:
+   docker compose up -d --build
    ```
+   
+   ⚠️ **ВАЖНО**: `docker compose restart` НЕ пересобирает образ и не применяет изменения в коде!
 
 ---
 
