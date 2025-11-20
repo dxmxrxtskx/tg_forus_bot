@@ -1,4 +1,6 @@
 """Keyboard builders for inline and reply keyboards."""
+
+# Maintenance: no functional impact, sync marker (2025-11-20).
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from typing import List, Optional
 

@@ -2,6 +2,17 @@
 .env
 config.json
 
+# Local-only documentation/scripts (not for end users)
+GITHUB.md
+WORKFLOW.md
+QUICK_START_GITHUB.md
+git_push.bat
+git_push.ps1
+git_push.sh
+git_setup.bat
+TEST_REPORT.md
+TROUBLESHOOTING.md
+
 # Database
 data/
 *.db
@@ -38,7 +49,7 @@ Thumbs.db
 # Git
 .git/
 
-# Server setup scripts (keep in repo)
-# setup_server.sh
-# update.sh
+# Server setup scripts (local only, not for GitHub)
+setup_server.sh
+update.sh
 

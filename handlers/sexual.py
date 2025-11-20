@@ -1,4 +1,6 @@
 """Sexual handlers."""
+
+# Maintenance: informational no-op comment (2025-11-20).
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters

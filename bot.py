@@ -1,8 +1,11 @@
 """Main bot file."""
+# Telegram Multi-List Bot - Main entry point
 import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from config import BOT_TOKEN, is_authorized_user
+
+# Maintenance: no-op touch to keep file metadata current (2025-11-20).
 from database import init_database
 from keyboards import main_menu_keyboard, main_menu_inline_keyboard
 

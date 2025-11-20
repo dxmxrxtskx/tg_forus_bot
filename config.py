@@ -1,4 +1,5 @@
 """Configuration management for the bot."""
+# Bot configuration and user authorization
 import os
 import json
 from pathlib import Path

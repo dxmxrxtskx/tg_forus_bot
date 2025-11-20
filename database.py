@@ -1,4 +1,6 @@
 """Database operations and initialization."""
+
+# Maintenance: file refreshed without functional changes (2025-11-20).
 import sqlite3
 import logging
 from pathlib import Path

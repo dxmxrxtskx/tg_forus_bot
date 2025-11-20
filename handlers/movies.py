@@ -1,4 +1,6 @@
 """Movie handlers."""
+
+# Maintenance: benign edit to keep file in sync (2025-11-20).
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters
