@@ -14,6 +14,16 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+async def safe_edit_message_text(query, text: str, reply_markup=None):
+    """Safely edit message text, handling Bad Request errors."""
+    try:
+        await query.edit_message_text(text, reply_markup=reply_markup)
+    except Exception as e:
+        # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
+        error_str = str(e)
+        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
+            raise
+
 TITLE, NOTE, CATEGORY, NEW_CATEGORY, EDIT_TITLE, EDIT_NOTE = range(6)
 
 async def trips_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -52,22 +62,17 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trips = get_trips(category_id=category_id)
     
     if not trips:
-        await query.edit_message_text("Список пуст", reply_markup=trips_menu_keyboard())
+        await safe_edit_message_text(query, "Список пуст", reply_markup=trips_menu_keyboard())
         return
     
     items = [{'id': t['id'], 'title': t['title']} for t in trips]
-    try:
-        await query.edit_message_text(
-            "Выберите поездку:",
-            reply_markup=list_keyboard(items, "trip", 0, 10, 
-                                       back_button="🔙 Назад", 
-                                       back_callback=f"trips:{category_type}")
-        )
-    except Exception as e:
-        # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
-        error_str = str(e)
-        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
-            raise
+    await safe_edit_message_text(
+        query,
+        "Выберите поездку:",
+        reply_markup=list_keyboard(items, "trip", 0, 10, 
+                                   back_button="🔙 Назад", 
+                                   back_callback=f"trips:{category_type}")
+    )
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show trip detail."""
@@ -78,7 +83,7 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trip = get_trip(trip_id)
     
     if not trip:
-        await query.edit_message_text("Поездка не найдена")
+        await safe_edit_message_text(query, "Поездка не найдена")
         return
     
     category = next((c for c in get_trip_categories() if c['id'] == trip['category_id']), None)
@@ -97,13 +102,11 @@ async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         category_map = {"Пешком": "walk", "Поездки": "trips", "Места в Херцег-Нови": "places"}
         category_type = category_map.get(category['name'])
     
-    try:
-        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type, visited=visited))
-    except Exception as e:
-        # Игнорируем ошибки "Message is not modified" и "Bad Request" (400)
-        error_str = str(e)
-        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
-            raise
+    await safe_edit_message_text(
+        query,
+        text,
+        reply_markup=trip_detail_keyboard(trip_id, category_type, visited=visited)
+    )
 
 async def trip_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start adding trip."""
@@ -228,7 +231,7 @@ async def trip_visited(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Обновить детальный просмотр
     trip = get_trip(trip_id)
     if not trip:
-        await query.edit_message_text("Поездка не найдена")
+        await safe_edit_message_text(query, "Поездка не найдена")
         return
     
     category = next((c for c in get_trip_categories() if c['id'] == trip['category_id']), None)
@@ -244,12 +247,11 @@ async def trip_visited(update: Update, context: ContextTypes.DEFAULT_TYPE):
         category_map = {"Пешком": "walk", "Поездки": "trips", "Места в Херцег-Нови": "places"}
         category_type = category_map.get(category['name'])
     
-    try:
-        await query.edit_message_text(text, reply_markup=trip_detail_keyboard(trip_id, category_type, visited=True))
-    except Exception as e:
-        error_str = str(e)
-        if "Message is not modified" not in error_str and "Bad Request" not in error_str:
-            raise
+    await safe_edit_message_text(
+        query,
+        text,
+        reply_markup=trip_detail_keyboard(trip_id, category_type, visited=True)
+    )
 
 async def trip_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Delete trip."""
