@@ -49,7 +49,3 @@ Thumbs.db
 # Git
 .git/
 
-# Server setup scripts (local only, not for GitHub)
-setup_server.sh
-update.sh
-
