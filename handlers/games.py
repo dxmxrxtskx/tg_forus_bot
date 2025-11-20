@@ -118,9 +118,11 @@ async def games_done_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     items = [{'id': g['id'], 'title': g['title']} for g in games]
     await query.edit_message_text(
-        "Выберите игру:",
-        reply_markup=list_keyboard(items, "game", 0, 10)
-    )
+    "Выберите игру:",
+    reply_markup=list_keyboard(items, "game", 0, 10,
+                               back_button="🔙 Назад",
+                               back_callback="games:done")
+)
 
 async def games_top_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show top games submenu."""
