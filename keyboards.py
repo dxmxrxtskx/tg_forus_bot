@@ -208,12 +208,20 @@ def games_done_menu_keyboard() -> InlineKeyboardMarkup:
 
 def games_top_menu_keyboard() -> InlineKeyboardMarkup:
     """Games top submenu."""
+    from config import USERS
     keyboard = [
         [InlineKeyboardButton("🏆 Общий топ", callback_data="games:top:all")],
-        [InlineKeyboardButton("👤 Топ пользователя 1", callback_data="games:top:user1")],
-        [InlineKeyboardButton("👤 Топ пользователя 2", callback_data="games:top:user2")],
-        [InlineKeyboardButton("🔙 Назад", callback_data="games:done")]
     ]
+    
+    # Добавить кнопки для каждого пользователя
+    if len(USERS) >= 1:
+        user1_name = USERS[0].get('display_name', 'Пользователь 1')
+        keyboard.append([InlineKeyboardButton(f"👤 Топ {user1_name}", callback_data="games:top:user1")])
+    if len(USERS) >= 2:
+        user2_name = USERS[1].get('display_name', 'Пользователь 2')
+        keyboard.append([InlineKeyboardButton(f"👤 Топ {user2_name}", callback_data="games:top:user2")])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="games:done")])
     return InlineKeyboardMarkup(keyboard)
 
 def game_detail_keyboard(game_id: int, status: str = "pending") -> InlineKeyboardMarkup:
