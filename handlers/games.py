@@ -202,7 +202,10 @@ async def game_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if game['genre']:
         text += f"🏷️ {game['genre']}"
     
-    status = game['status'] if 'status' in game.keys() and game['status'] else 'pending'
+    if 'status' in game.keys() and game['status']:
+        status = game['status']
+    else:
+        status = 'pending'
     await query.edit_message_text(text, reply_markup=game_detail_keyboard(game_id, status=status))
 
 async def game_add_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
