@@ -71,7 +71,7 @@ async def trips_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Выберите поездку:",
         reply_markup=list_keyboard(items, "trip", 0, 10, 
                                    back_button="🔙 Назад", 
-                                   back_callback=f"trips:{category_type}")
+                                   back_callback=f"trips:menu")
     )
 
 async def trip_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
